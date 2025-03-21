@@ -1,15 +1,16 @@
-// src/models/user.model.js
-import mongoose from 'mongoose';
-import bcrypt from 'bcrypt';
+import mongoose from 'mongoose';  
+import bcrypt from 'bcryptjs'; 
 
 const userSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   role: { type: String, default: 'USER' },
-  photo: { type: String, default: 'default.png' }
+  photo: { type: String, default: 'default.png' },
+  isVerified: { type: Boolean, default: false },
+  verificationToken: { type: String }
 });
 
-// Encriptar contraseña antes de guardar
+
 userSchema.pre('save', async function(next) {
   if (!this.isModified('password')) return next();
   const salt = await bcrypt.genSalt(10);
@@ -17,7 +18,7 @@ userSchema.pre('save', async function(next) {
   next();
 });
 
-// Método para comparar la contraseña
+
 userSchema.methods.comparePassword = async function(password) {
   return bcrypt.compare(password, this.password);
 };

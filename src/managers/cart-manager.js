@@ -14,12 +14,16 @@ class CartManager {
             const data = await fs.promises.readFile(this.path, "utf-8");
             this.carts = JSON.parse(data);
             if (this.carts.length > 0) {
-
                 this.ultId = Math.max(...this.carts.map(cart => cart.id));
             }
         } catch (error) {
-            console.log("Error al cargar los carritos. Es posible que no exista el archivo. Se creará uno nuevo.");
-            await this.guardarCarritos(); // Si no existe el archivo, se creo
+            if (error.code === "ENOENT") {
+                console.log("El archivo no existe, se creará uno nuevo.");
+                await this.guardarCarritos();
+            } else {
+                console.log("Error al cargar los carritos:", error);
+                throw new Error("Error al cargar los carritos");
+            }
         }
     }
 
@@ -44,9 +48,13 @@ class CartManager {
     }
 
     async getCarritoById(carritoId) {
-        const carritoBuscado = this.carts.find(carrito => carrito.id === carritoId);
+        if (isNaN(carritoId)) {
+            throw new Error(`El ID del carrito debe ser un número válido.`);
+        }
 
-        if (!carritoBuscado) {
+        const carritoBuscado = this.carts.find(carrito => carrito.id === carritoId);
+        if (!carritoBuscado) 
+            {
             throw new Error(`No existe un carrito con el id: ${carritoId}`);
         }
 
@@ -54,14 +62,18 @@ class CartManager {
     }
 
     async agregarProductoAlCarrito(carritoId, productoId, quantity = 1) {
+        if (isNaN(carritoId) || isNaN(productoId)) {
+            throw new Error(`El ID del carrito y del producto deben ser números válidos.`);
+        }
+
         const carrito = await this.getCarritoById(carritoId);
         const existeProducto = carrito.products.find(p => p.product === productoId);
 
         if (existeProducto) {
-            // Si el producto ya está en el carrito, se aumenta la cantidad
+            
             existeProducto.quantity += quantity;
         } else {
-            // Si no está, se agrega con la cantidad especificada
+            
             carrito.products.push({ product: productoId, quantity });
         }
 

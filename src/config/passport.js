@@ -1,4 +1,3 @@
-// src/config/passport.js
 import passport from 'passport';
 import { Strategy as LocalStrategy } from 'passport-local';
 import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt';
@@ -6,9 +5,9 @@ import User from '../models/user.model.js';
 import bcrypt from 'bcrypt';
 import dotenv from 'dotenv';
 
-dotenv.config(); 
+dotenv.config();
 
-
+// Estrategia Local (para iniciar sesión con email y contraseña)
 passport.use(
   new LocalStrategy(
     { usernameField: 'email', passwordField: 'password' },
@@ -16,6 +15,9 @@ passport.use(
       try {
         const user = await User.findOne({ email });
         if (!user) return done(null, false, { message: 'Usuario no encontrado' });
+
+        // Verificar si el usuario está verificado
+        if (!user.isVerified) return done(null, false, { message: 'Usuario no verificado' });
 
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) return done(null, false, { message: 'Contraseña incorrecta' });
@@ -28,7 +30,7 @@ passport.use(
   )
 );
 
-// Estrategia JWT para verificar el token
+
 passport.use(
   new JwtStrategy(
     {

@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import mongoosePaginate from "mongoose-paginate-v2"; // Importa mongoose-paginate-v2
+import mongoosePaginate from "mongoose-paginate-v2"; 
 
 const productSchema = new mongoose.Schema({
   title: {
@@ -13,11 +13,12 @@ const productSchema = new mongoose.Schema({
   price: {
     type: Number,
     required: true,
-    default: 1, // Puedes asignar un precio por defecto si lo deseas
+    default: 1,
+    min: [0, "Price cannot be negative"], 
   },
   img: {
     type: String,
-    default: "default-product-img.jpg", // Ruta de imagen por defecto
+    default: "default-product-img.jpg", 
   },
   code: {
     type: String,
@@ -27,28 +28,28 @@ const productSchema = new mongoose.Schema({
   stock: {
     type: Number,
     required: true,
-    default: 1, // Puedes poner 1 como valor predeterminado si no se especifica
+    default: 1,
+    min: [0, "Stock cannot be negative"], 
   },
   category: {
     type: String,
     required: true,
-    enum: ["electronics", "clothing", "food", "home", "other"], // Puedes definir categorías fijas o dejarlas abiertas
-    default: "other", // Valor por defecto
+    enum: ["electronics", "clothing", "food", "home", "other"], 
+    default: "other", 
   },
   status: {
     type: String,
     required: true,
-    enum: ["available", "out of stock", "discontinued"], // Enum para manejar el estado del producto
-    default: "available", // Estado por defecto
+    enum: ["available", "out of stock", "discontinued"], 
+    default: "available", 
   },
   thumbnails: {
     type: [String],
-    default: ["default-thumbnail.jpg"], // Puede tener una miniatura por defecto si no se especifica
+    default: ["default-thumbnail.jpg"], 
   },
 });
 
-// Agrega el plugin de paginación al esquema
 productSchema.plugin(mongoosePaginate);
 
-const ProductModel = mongoose.model("Product", productSchema); // Renombrado a "Product" para mayor claridad
+const ProductModel = mongoose.model("Product", productSchema); 
 export default ProductModel;

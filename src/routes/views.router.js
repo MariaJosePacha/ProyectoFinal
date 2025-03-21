@@ -86,68 +86,37 @@ router.get("/carts", async (req, res) => {
     }
 });
 
-// Ruta para actualizar la cantidad de un producto en el carrito
-router.post("/carts/:cid/product/:pid/update", async (req, res) => {
-    const cartId = req.params.cid;
-    const productId = req.params.pid;
-    const { quantity } = req.body;
+// Ruta para manejar el registro de usuario
+router.post("/users/register", async (req, res) => {
+    const { username, password } = req.body;
+
+    // Verificar que ambos campos sean proporcionados
+    if (!username || !password) {
+        return res.status(400).send("El nombre de usuario y la contraseña son obligatorios");
+    }
 
     try {
-        const cart = await CartModel.findById(cartId);
-        const productIndex = cart.products.findIndex(
-            (item) => item.product.toString() === productId
-        );
-
-        if (productIndex !== -1) {
-            cart.products[productIndex].quantity = quantity;
-            await cart.save();
+        // Verificar si el usuario ya existe
+        const existingUser = await UserModel.findOne({ username });
+        if (existingUser) {
+            return res.status(400).send("El nombre de usuario ya está en uso");
         }
 
-        res.redirect(`/carts/${cartId}`);
+        // Crear un nuevo usuario
+        const user = new UserModel({ username, password });
+        await user.save();
+
+        // Redirigir al login después de crear el usuario
+        res.redirect("/users/login");
     } catch (error) {
-        console.error("Error al actualizar la cantidad:", error);
-        res.status(500).send("Error al actualizar la cantidad");
-    }
-});
-
-// Ruta para eliminar un producto del carrito
-router.post("/carts/:cid/product/:pid", async (req, res) => {
-    const cartId = req.params.cid;
-    const productId = req.params.pid;
-
-    try {
-        const cart = await CartModel.findById(cartId);
-
-        // Eliminar el producto del carrito
-        cart.products = cart.products.filter(
-            (item) => item.product.toString() !== productId
-        );
-
-        await cart.save();
-        res.redirect(`/carts/${cartId}`);
-    } catch (error) {
-        console.error("Error al eliminar el producto:", error);
-        res.status(500).send("Error al eliminar el producto");
+        console.error("Error al registrar el usuario:", error);
+        res.status(500).send("Error al registrar el usuario");
     }
 });
 
 // Ruta para ver formulario de registro
 router.get("/users/register", (req, res) => {
     res.render("register");
-});
-
-// Ruta para manejar el registro de usuario
-router.post("/users/register", async (req, res) => {
-    const { username, password } = req.body;
-
-    try {
-        const user = new UserModel({ username, password });
-        await user.save();
-        res.redirect("/users/login");
-    } catch (error) {
-        console.error("Error al registrar el usuario:", error);
-        res.status(500).send("Error al registrar el usuario");
-    }
 });
 
 // Ruta para ver formulario de login
@@ -158,6 +127,11 @@ router.get("/users/login", (req, res) => {
 // Ruta para manejar login de usuario
 router.post("/users/login", async (req, res) => {
     const { username, password } = req.body;
+
+    // Validación básica para login
+    if (!username || !password) {
+        return res.status(400).send("El nombre de usuario y la contraseña son obligatorios");
+    }
 
     try {
         const user = await UserModel.findOne({ username, password });

@@ -2,11 +2,11 @@ import express from "express";
 import ProductManager from "../managers/product-manager.js";
 import CartManager from "../managers/cart-manager.js";
 
-const manager = new ProductManager("./src/data/productos.json");
+const manager = new ProductManager("./src/data/products.json");
 const cartManager = new CartManager("./src/data/carts.json");
 const router = express.Router();
 
-// La ruta raíz GET
+// Root route GET
 router.get("/", async (req, res) => {
     try {
         const { limit = 10, page = 1, query = '', sort = '' } = req.query;
@@ -14,13 +14,12 @@ router.get("/", async (req, res) => {
         const pageParsed = parseInt(page);   
 
         if (isNaN(limitParsed) || isNaN(pageParsed) || limitParsed <= 0 || pageParsed <= 0) {
-            return res.status(400).json({ error: 'Los parámetros limit y page deben ser números positivos.' });
+            return res.status(400).json({ error: "The parameters limit and page must be positive numbers." });
         }
 
-        const productos = await manager.getProducts();
+        const products = await manager.getProducts();
 
-        // Filtrar los productos según el query
-        let filteredProducts = productos.filter(product => {
+        let filteredProducts = products.filter(product => {
             return (
                 product.title.toLowerCase().includes(query.toLowerCase()) ||
                 product.description.toLowerCase().includes(query.toLowerCase()) ||
@@ -30,10 +29,10 @@ router.get("/", async (req, res) => {
             );
         });
 
-        // Ordenar los productos si se proporciona 'sort'
-        if (sort === 'asc') {
+        // Sort products if 'sort' is provided
+        if (sort === "asc") {
             filteredProducts.sort((a, b) => a.price - b.price);
-        } else if (sort === 'desc') {
+        } else if (sort === "desc") {
             filteredProducts.sort((a, b) => b.price - a.price);
         }
 
@@ -57,76 +56,81 @@ router.get("/", async (req, res) => {
             nextLink: pageParsed < totalPages ? `/products?page=${pageParsed + 1}&limit=${limitParsed}` : null
         };
 
-        res.json(response); // Devolver la respuesta en formato JSON
+        res.json(response);
     } catch (error) {
-        res.status(500).send("Error interno del servidor");
+        res.status(500).send("Internal server error");
     }
 });
 
-// Ruta GET para obtener producto por ID
+// GET route to get a product by ID
 router.get("/:pid", async (req, res) => {
     let id = req.params.pid;
 
     try {
-        const productoBuscado = await manager.getProductById(id);
+        const product = await manager.getProductById(id);
 
-        if (!productoBuscado) {
-            res.send("Producto no encontrado");
+        if (!product) {
+            res.send("Product not found");
         } else {
-            res.json(productoBuscado); // Retorna el producto
+            res.json(product);
         }
     } catch (error) {
-        res.status(500).send("Error en el servidor");
+        res.status(500).send("Server error");
     }
 });
 
-// Ruta POST para agregar un producto al carrito
+// POST route to add a product to the cart
 router.post("/carts/:cid/product/:pid", async (req, res) => {
     try {
         const { cid, pid } = req.params;
         await cartManager.addProductToCart(cid, pid);
-
-        // Respuesta indicando que el producto fue agregado correctamente
-        res.status(200).send("Producto agregado al carrito");
+        res.status(200).send("Product added to cart");
     } catch (error) {
-        res.status(500).send("Error al agregar el producto al carrito");
+        res.status(500).send("Error adding product to cart");
     }
 });
 
-// Ruta POST para agregar un nuevo producto
+// POST route to add a new product
 router.post("/", async (req, res) => {
-    const nuevoProducto = req.body;
+    const newProduct = req.body;
+
+    // Validate that the product has all necessary fields
+    if (!newProduct.title || !newProduct.price || !newProduct.description) {
+        return res.status(400).json({ error: "Missing required product fields." });
+    }
 
     try {
-        await manager.addProduct(nuevoProducto);
-        res.status(201).send("Producto agregado exitosamente");
+        // Try to add the product
+        await manager.addProduct(newProduct);
+        res.status(201).json({ message: "Product added successfully" });
     } catch (error) {
-        res.status(500).send("Error al momento de agregar el producto");
+        console.error(error); // To know what went wrong
+        res.status(500).json({ error: "There was an error adding the product" });
     }
 });
 
-// Ruta PUT para actualizar un producto
+// PUT route to update a product
 router.put("/:pid", async (req, res) => {
     const id = req.params.pid;
-    const productoActualizado = req.body;
+    const updatedProduct = req.body;
 
     try {
-        await manager.updateProduct(id, productoActualizado);
-        res.send("Producto actualizado exitosamente");
+        await manager.updateProduct(id, updatedProduct);
+        res.send("Product updated successfully");
     } catch (error) {
-        res.status(500).send("Error al actualizar el producto");
+        res.status(500).send("Error updating the product");
     }
 });
 
-// Ruta DELETE para eliminar un producto
+// DELETE route to delete a product
 router.delete("/:pid", async (req, res) => {
     let id = req.params.pid;
 
     try {
         await manager.deleteProduct(id);
-        res.send("Producto eliminado");
+        res.send("Product deleted");
     } catch (error) {
-        res.status(500).send("Error, no se logró borrar el producto");
+        res.status(500).send("Error, could not delete the product");
     }
 });
 
