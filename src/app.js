@@ -1,3 +1,4 @@
+// app.js
 import express from "express";
 import { engine } from "express-handlebars";
 import { Server } from "socket.io";
@@ -6,21 +7,20 @@ import methodOverride from "method-override";
 import productRouter from "./routes/products.router.js";
 import cartRouter from "./routes/carts.router.js";
 import viewsRouter from "./routes/views.router.js";
-import usersRouter from "./routes/users.router.js"; // Importar las rutas de usuarios
+import usersRouter from "./routes/users.router.js"; 
+import ticketRouter from "./routes/tickets.router.js"; 
 import Product from "./models/product.model.js";
 import Cart from "./models/cart.model.js";
 import cookieParser from "cookie-parser";
-import passport from "passport"; // Importar Passport
-import dotenv from "dotenv";  // Importar dotenv
+import passport from "passport"; 
+import dotenv from "dotenv"; 
 import "./database.js"; 
-import "./config/passport.js"; // Importar la configuración de Passport
-import errorHandler from "./middlewares/errorHandler.js"; // Importar el errorHandler
-import pathHandler from "./middlewares/pathHandler.js"; // Importar el pathHandler
-import morgan from "morgan";  // Importar morgan para registro de solicitudes HTTP
-import "./seed.js"; // 🔥 Se ejecutará automáticamente al iniciar la aplicación
+import "./config/passport.js"; 
+import errorHandler from "./middlewares/errorHandler.js"; 
+import pathHandler from "./middlewares/pathHandler.js"; 
+import morgan from "morgan";  
 
-// Cargar las variables de entorno
-dotenv.config();  // Importar y configurar dotenv para acceder a las variables del archivo .env
+dotenv.config();  
 
 const app = express();
 const PORT = 8080;
@@ -45,6 +45,7 @@ app.set("views", path.resolve("src/views"));
 app.use("/api/products", productRouter);
 app.use("/api/carts", cartRouter);
 app.use("/api/users", usersRouter); // Usar las rutas de usuarios
+app.use("/api/tickets", ticketRouter);  // Agregar las rutas de tickets (compra)
 app.use("/", viewsRouter);
 
 // Middleware para rutas no encontradas

@@ -2,7 +2,6 @@
 const errorHandler = (err, req, res, next) => {
     console.error(err.stack || err); 
   
-    // Manejo de errores personalizados
     if (err.statusCode) {
       return res.status(err.statusCode).json({
         message: err.message || "Error desconocido",

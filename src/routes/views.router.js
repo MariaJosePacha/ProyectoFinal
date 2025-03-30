@@ -1,7 +1,7 @@
 import { Router } from "express";
 import ProductModel from "../models/product.model.js";
 import CartModel from "../models/cart.model.js";
-import UserModel from "../models/user.model.js"; // Modelo de usuario
+import UserModel from "../models/user.model.js"; 
 import jwt from "jsonwebtoken";
 
 const router = Router();
